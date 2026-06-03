@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OptiWork Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0c0e14;
+    --surface: #13151f;
+    --surface2: #1a1d29;
+    --surface3: #21253a;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e8eaf2;
+    --muted: #6b7280;
+    --accent: #7c6fff;
+    --accent-soft: rgba(124,111,255,0.12);
+    --accent-glow: rgba(124,111,255,0.25);
+    --emerald: #34d399;
+    --emerald-soft: rgba(52,211,153,0.12);
+    --amber: #fbbf24;
+    --amber-soft: rgba(251,191,36,0.12);
+    --coral: #f87171;
+    --coral-soft: rgba(248,113,113,0.1);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* Ambient glow */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 600px;
+    background: radial-gradient(ellipse, rgba(124,111,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px 24px 60px;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--accent-soft);
+    border: 1px solid rgba(124,111,255,0.25);
+    border-radius: 99px;
+    padding: 5px 14px 5px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+
+  .header-badge i { font-size: 12px; }
+
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 5vw, 46px);
+    font-weight: 700;
+    line-height: 1.15;
+    background: linear-gradient(135deg, #e8eaf2 30%, #a89dff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+
+  .header p {
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+
+  /* GRID */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--border2); }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .card-title .icon-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+  }
+
+  .icon-purple { background: var(--accent-soft); color: var(--accent); }
+  .icon-emerald { background: var(--emerald-soft); color: var(--emerald); }
+  .icon-amber { background: var(--amber-soft); color: var(--amber); }
+
+  .btn-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: 7px;
+    color: var(--muted);
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.18s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-add:hover { background: var(--accent-soft); border-color: rgba(124,111,255,0.3); color: var(--accent); }
+
+  /* TABLES */
+  .table-wrap {
+    overflow-y: auto;
+    max-height: 210px;
+  }
+  .table-wrap::-webkit-scrollbar { width: 4px; }
+  .table-wrap::-webkit-scrollbar-track { background: transparent; }
+  .table-wrap::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead th {
+    padding: 9px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-align: left;
+    background: var(--surface2);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  thead th.center { text-align: center; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+
+  tbody td { padding: 6px 10px; }
+
+  input[type="text"], input[type="number"] {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    width: 100%;
+    padding: 4px 6px;
+    border-radius: 5px;
+    transition: background 0.15s;
+  }
+  input[type="text"]:focus, input[type="number"]:focus {
+    background: var(--surface3);
+  }
+  input[type="number"] { text-align: center; font-weight: 500; }
+  input[type="number"].accent { color: var(--accent); }
+  input[type="number"].emerald { color: var(--emerald); }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
+  .btn-del {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 5px;
+    transition: all 0.15s;
+    display: block;
+    margin: auto;
+  }
+  .btn-del:hover { color: var(--coral); background: var(--coral-soft); }
+
+  /* CTA BUTTON */
+  .btn-calc {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #6558f5, #8b5cf6);
+    border: none;
+    border-radius: var(--radius);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    transition: all 0.2s;
+    box-shadow: 0 0 0 0 var(--accent-glow);
+    letter-spacing: 0.01em;
+  }
+  .btn-calc:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 32px var(--accent-glow);
+  }
+  .btn-calc:active { transform: scale(0.99); }
+
+  /* LEFT COLUMN */
+  .left-col { display: flex; flex-direction: column; gap: 16px; }
+
+  /* RIGHT COLUMN */
+  .right-col { display: flex; flex-direction: column; gap: 16px; }
+
+  /* STAT CARDS */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 16px 20px;
+  }
+
+  .stat-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .stat-value {
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .stat-value.accent { color: var(--accent); }
+  .stat-value.emerald { color: var(--emerald); }
+
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--surface3);
+    border-radius: 99px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+  .fill-accent { background: linear-gradient(90deg, var(--accent), #a78bfa); }
+  .fill-emerald { background: linear-gradient(90deg, var(--emerald), #6ee7b7); }
+
+  /* RESULT HEADER */
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .status-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--surface3);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .status-badge.success {
+    background: var(--emerald-soft);
+    color: var(--emerald);
+    border-color: rgba(52,211,153,0.2);
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-size: 13.5px;
+    line-height: 1.8;
+    border: 1px dashed var(--border2);
+    border-radius: 10px;
+    background: var(--surface2);
+  }
+  .empty-state i { font-size: 28px; display: block; margin-bottom: 10px; opacity: 0.35; }
+
+  /* EMPLOYEE RESULT CARD */
+  .emp-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    animation: slideUp 0.3s ease both;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .emp-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface3);
+  }
+
+  .emp-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    border: 1px solid rgba(124,111,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .emp-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .kpi-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--emerald-soft);
+    border: 1px solid rgba(52,211,153,0.2);
+    color: var(--emerald);
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 99px;
+  }
+
+  .emp-progress-row {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .time-text {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    min-width: 90px;
+  }
+
+  .jobs-table {
+    width: 100%;
+  }
+  .jobs-table th {
+    background: transparent;
+    padding: 8px 14px;
+    font-size: 10.5px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  .jobs-table th.center { text-align: center; }
+  .jobs-table td {
+    padding: 8px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  .jobs-table tbody tr:last-child td { border-bottom: none; }
+  .jobs-table tbody tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .tag-hours {
+    background: var(--surface3);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 5px;
+    display: inline-block;
+  }
+
+  .tag-kpi {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 5px;
+    display: inline-block;
+  }
+
+  /* BACKLOG */
+  .backlog-wrap {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .backlog-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--amber);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .backlog-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+  .backlog-tag {
+    background: var(--amber-soft);
+    border: 1px solid rgba(251,191,36,0.2);
+    color: var(--amber);
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 7px;
+  }
+
+  /* FOOTER KPI */
+  .footer-kpi {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .footer-kpi-label {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .footer-kpi-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  /* SECTION LABEL */
+  .section-label {
+    padding: 4px 20px 12px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .results-list {
+    padding: 0 20px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .no-job-row {
+    font-style: italic;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 12px 14px !important;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 20px;
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-badge">
+      <i class="fas fa-diagram-project"></i>
+      Multi-Personnel Optimizer
+    </div>
+    <h1>Phân Công Thông Minh<br>Đa Nhân Sự</h1>
+    <p>Tối ưu phân phối công việc bằng quy hoạch động Knapsack — ưu tiên người có ít giờ trước, tối đa hóa KPI toàn đội.</p>
+  </div>
+
+  <div class="main-grid">
+    <!-- LEFT -->
+    <div class="left-col">
+
+      <!-- Nhân sự -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="icon-dot icon-purple"><i class="fas fa-users"></i></span>
+            Danh sách nhân sự
+          </div>
+          <button class="btn-add" id="addEmployeeBtn"><i class="fas fa-plus"></i> Thêm người</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tên nhân viên</th>
+                <th class="center" style="width:100px">Quỹ giờ/tuần</th>
+                <th style="width:40px"></th>
+              </tr>
+            </thead>
+            <tbody id="employeeRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Công việc -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="icon-dot icon-emerald"><i class="fas fa-layer-group"></i></span>
+            Kho công việc
+          </div>
+          <button class="btn-add" id="addProjectBtn"><i class="fas fa-plus"></i> Thêm việc</button>
+        </div>
+        <div class="table-wrap" style="max-height: 280px">
+          <table>
+            <thead>
+              <tr>
+                <th>Tên đầu việc</th>
+                <th class="center" style="width:60px">Giờ</th>
+                <th class="center" style="width:60px">KPI</th>
+                <th style="width:40px"></th>
+              </tr>
+            </thead>
+            <tbody id="projectRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <button class="btn-calc" id="calculateBtn">
+        <i class="fas fa-wand-magic-sparkles"></i>
+        Tối ưu hóa phân công
+      </button>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-col">
+      <div class="card" style="flex:1">
+        <div class="result-header">
+          <div class="card-title">
+            <span class="icon-dot icon-emerald"><i class="fas fa-clipboard-check"></i></span>
+            Phương án phân công tối ưu
+          </div>
+          <span class="status-badge" id="globalStatusBadge">Chưa tính</span>
+        </div>
+
+        <!-- Stats -->
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">
+              Thời gian đã dùng
+              <span class="stat-value accent" id="globalTimeText">0/0h</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill fill-accent" id="globalTimeBar" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">
+              Phủ kín công việc
+              <span class="stat-value emerald" id="globalKpiText">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill fill-emerald" id="globalKpiBar" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Kết quả từng người -->
+        <div class="section-label" style="padding-top:14px">Phân phối theo nhân sự</div>
+        <div class="results-list" id="resultsOutputContainer">
+          <div class="empty-state">
+            <i class="fas fa-chart-gantt"></i>
+            Bấm <strong>"Tối ưu hóa phân công"</strong><br>để chạy thuật toán Knapsack
+          </div>
+        </div>
+
+        <!-- Backlog -->
+        <div id="backlogContainer" style="display:none">
+          <div class="divider" style="margin-top:14px"></div>
+          <div class="backlog-wrap">
+            <div class="backlog-title">
+              <i class="fas fa-triangle-exclamation"></i>
+              Công việc chưa được giao
+            </div>
+            <div class="backlog-tags" id="backlogList"></div>
+          </div>
+        </div>
+
+        <!-- Footer KPI -->
+        <div class="footer-kpi">
+          <span class="footer-kpi-label">Tổng KPI toàn đội đạt được</span>
+          <span class="footer-kpi-val" id="globalTotalKpi">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let employees = [
+    { name: "Nguyễn Văn A", capacity: 40 },
+    { name: "Trần Thị B", capacity: 32 },
+    { name: "Lê Minh C", capacity: 16 }
+  ];
+
+  let projects = [
+    { name: "Lập trình API Core", hours: 24, kpi: 30 },
+    { name: "Viết tài liệu hệ thống", hours: 8, kpi: 8 },
+    { name: "Fix bug bảo mật", hours: 12, kpi: 20 },
+    { name: "Thiết kế UI/UX", hours: 16, kpi: 18 },
+    { name: "Họp bàn giao & Training", hours: 6, kpi: 4 },
+    { name: "Kiểm thử tự động", hours: 10, kpi: 10 }
+  ];
+
+  function initials(name) {
+    return name.trim().split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  function renderEmployees() {
+    const tbody = document.getElementById('employeeRows');
+    tbody.innerHTML = employees.map((emp, i) => `
+      <tr>
+        <td><input type="text" value="${emp.name}" oninput="updateEmp(${i},'name',this.value)"></td>
+        <td><input type="number" value="${emp.capacity}" min="0" class="accent" oninput="updateEmp(${i},'capacity',this.value)"></td>
+        <td><button class="btn-del" onclick="deleteEmp(${i})"><i class="fas fa-xmark"></i></button></td>
+      </tr>
+    `).join('');
+  }
+
+  function renderProjects() {
+    const tbody = document.getElementById('projectRows');
+    tbody.innerHTML = projects.map((p, i) => `
+      <tr>
+        <td><input type="text" value="${p.name}" oninput="updateProj(${i},'name',this.value)"></td>
+        <td><input type="number" value="${p.hours}" min="1" oninput="updateProj(${i},'hours',this.value)"></td>
+        <td><input type="number" value="${p.kpi}" min="0" class="emerald" oninput="updateProj(${i},'kpi',this.value)"></td>
+        <td><button class="btn-del" onclick="deleteProj(${i})"><i class="fas fa-xmark"></i></button></td>
+      </tr>
+    `).join('');
+  }
+
+  window.updateEmp = (i, f, v) => {
+    if (f === 'name') employees[i][f] = v;
+    else employees[i][f] = Math.max(0, parseInt(v) || 0);
+  };
+
+  window.deleteEmp = (i) => {
+    if (employees.length <= 1) return;
+    employees.splice(i, 1); renderEmployees();
+  };
+
+  window.updateProj = (i, f, v) => {
+    if (f === 'name') projects[i][f] = v;
+    else projects[i][f] = Math.max(0, parseInt(v) || 0);
+  };
+
+  window.deleteProj = (i) => { projects.splice(i, 1); renderProjects(); };
+
+  document.getElementById('addEmployeeBtn').onclick = () => {
+    employees.push({ name: `Nhân viên ${employees.length + 1}`, capacity: 40 });
+    renderEmployees();
+  };
+
+  document.getElementById('addProjectBtn').onclick = () => {
+    projects.push({ name: "Việc mới", hours: 8, kpi: 10 });
+    renderProjects();
+  };
+
+  function knapsackForJobs(jobs, capacity) {
+    const n = jobs.length;
+    if (!n || capacity <= 0) return { selectedJobs: [], totalKpi: 0, totalHours: 0 };
+    const dp = Array.from({length: n+1}, () => new Array(capacity+1).fill(0));
+    for (let i = 1; i <= n; i++) {
+      const h = jobs[i-1].hours, k = jobs[i-1].kpi;
+      for (let w = 0; w <= capacity; w++) {
+        dp[i][w] = dp[i-1][w];
+        if (h <= w) dp[i][w] = Math.max(dp[i][w], dp[i-1][w-h] + k);
+      }
+    }
+    let w = capacity, selected = [], totalKpi = dp[n][capacity];
+    for (let i = n; i > 0 && totalKpi > 0; i--) {
+      if (dp[i][w] !== dp[i-1][w]) {
+        selected.push(jobs[i-1]);
+        w -= jobs[i-1].hours;
+        totalKpi -= jobs[i-1].kpi;
+      }
+    }
+    selected.reverse();
+    return { selectedJobs: selected, totalKpi: selected.reduce((s,j)=>s+j.kpi,0), totalHours: selected.reduce((s,j)=>s+j.hours,0) };
+  }
+
+  document.getElementById('calculateBtn').onclick = () => {
+    let jobPool = projects.map(p => ({...p, assignedTo: null}));
+    jobPool.sort((a,b) => (b.kpi/(b.hours||1)) - (a.kpi/(a.hours||1)));
+
+    const sortedEmps = [...employees].sort((a,b) => a.capacity - b.capacity);
+    let totalUsed = 0, totalKpiAll = 0;
+    const totalCap = employees.reduce((s,e)=>s+e.capacity,0);
+    const results = [];
+
+    for (let emp of sortedEmps) {
+      if (emp.capacity <= 0) continue;
+      const available = jobPool.filter(j => !j.assignedTo);
+      if (!available.length) break;
+      const {selectedJobs, totalKpi, totalHours} = knapsackForJobs(available, emp.capacity);
+      for (let job of selectedJobs) {
+        const orig = jobPool.find(j => j.name===job.name && j.hours===job.hours && j.kpi===job.kpi && !j.assignedTo);
+        if (orig) orig.assignedTo = emp.name;
+      }
+      results.push({ employeeName: emp.name, capacity: emp.capacity, assignedJobs: selectedJobs, usedHours: totalHours, earnedKpi: totalKpi });
+      totalUsed += totalHours;
+      totalKpiAll += totalKpi;
+    }
+
+    // Render
+    const container = document.getElementById('resultsOutputContainer');
+    container.innerHTML = '';
+    for (let emp of employees) {
+      const r = results.find(x => x.employeeName === emp.name) || {employeeName:emp.name, capacity:emp.capacity, assignedJobs:[], usedHours:0, earnedKpi:0};
+      const pct = r.capacity > 0 ? Math.round((r.usedHours/r.capacity)*100) : 0;
+      const initStr = initials(r.employeeName);
+      const jobRows = r.assignedJobs.length
+        ? r.assignedJobs.map(j => `
+          <tr>
+            <td style="color:var(--text)">${j.name}</td>
+            <td style="text-align:center"><span class="tag-hours">${j.hours}h</span></td>
+            <td style="text-align:center"><span class="tag-kpi">+${j.kpi}</span></td>
+          </tr>`)
+          .join('')
+        : `<tr><td colspan="3" class="no-job-row">Không có việc phù hợp hoặc hết việc</td></tr>`;
+
+      container.insertAdjacentHTML('beforeend', `
+        <div class="emp-card" style="animation-delay:${employees.indexOf(emp)*60}ms">
+          <div class="emp-card-header">
+            <div class="emp-name-row">
+              <div class="avatar">${initStr}</div>
+              <span class="emp-name">${r.employeeName}</span>
+            </div>
+            <span class="kpi-pill"><i class="fas fa-star" style="font-size:9px"></i> ${r.earnedKpi} KPI</span>
+          </div>
+          <div class="emp-progress-row">
+            <span class="time-text">${r.usedHours}/${r.capacity}h · ${pct}%</span>
+            <div class="progress-bar" style="flex:1">
+              <div class="progress-fill fill-accent" style="width:${Math.min(pct,100)}%"></div>
+            </div>
+          </div>
+          <table class="jobs-table">
+            <thead><tr>
+              <th>Đầu việc</th>
+              <th class="center">Thời gian</th>
+              <th class="center">KPI</th>
+            </tr></thead>
+            <tbody>${jobRows}</tbody>
+          </table>
+        </div>
+      `);
+    }
+
+    // Backlog
+    const backlog = jobPool.filter(j => !j.assignedTo);
+    const bc = document.getElementById('backlogContainer');
+    if (backlog.length) {
+      bc.style.display = '';
+      document.getElementById('backlogList').innerHTML = backlog.map(b => `
+        <span class="backlog-tag">${b.name} · ${b.hours}h · ${b.kpi} KPI</span>
+      `).join('');
+    } else { bc.style.display = 'none'; }
+
+    // Stats
+    const badge = document.getElementById('globalStatusBadge');
+    badge.textContent = 'Hoàn thành';
+    badge.classList.add('success');
+
+    document.getElementById('globalTotalKpi').textContent = totalKpiAll;
+
+    const timePct = totalCap > 0 ? Math.round((totalUsed/totalCap)*100) : 0;
+    document.getElementById('globalTimeText').textContent = `${totalUsed}/${totalCap}h`;
+    document.getElementById('globalTimeBar').style.width = `${Math.min(timePct,100)}%`;
+
+    const totalPossibleKpi = projects.reduce((s,p)=>s+p.kpi,0);
+    const kpiPct = totalPossibleKpi > 0 ? Math.round((totalKpiAll/totalPossibleKpi)*100) : 0;
+    document.getElementById('globalKpiText').textContent = `${kpiPct}%`;
+    document.getElementById('globalKpiBar').style.width = `${kpiPct}%`;
+  };
+
+  renderEmployees();
+  renderProjects();
+</script>
+</body>
+</html>
